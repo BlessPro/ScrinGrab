@@ -1,10 +1,15 @@
 <?php
 /**
  * Plugin Name: ScripGrab
+ * Plugin URI: https://github.com/BlessPro/wp-screenshot
  * Description: Capture/backup screenshots of selected pages and manage them from one place.
  * Version: 0.1.0
- * Author: You
+ * Author: Bless Doe (aka BlessPro)
+ * Author URI: https://github.com/BlessPro
+ * License: GPLv2 or later
+ * Text Domain: scripgrab
  */
+
 
 if (!defined('ABSPATH')) exit;
 
