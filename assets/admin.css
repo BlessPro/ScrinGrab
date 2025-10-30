@@ -1,0 +1,63 @@
+/* overlay */
+.sg-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13,17,23,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+.sg-overlay-card {
+  background: #fff;
+  padding: 32px 42px;
+  border-radius: 14px;
+  text-align: center;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: 0 20px 50px rgba(0,0,0,.08);
+}
+.sg-title { font-size: 1.8rem; margin-bottom: .5rem; }
+.sg-subtitle { color: #555; margin-bottom: 1.5rem; }
+.sg-login-btn { font-size: 1rem; }
+.sg-later-note { margin-top: 1rem; color: #999; font-size: .9rem; }
+
+/* dashboard */
+.sg-wrap { margin-top: 20px; }
+.sg-heading { font-size: 1.5rem; margin-bottom: 1rem; }
+.sg-tabs { display: flex; gap: .5rem; margin-bottom: 1rem; }
+.sg-tab {
+  border: 1px solid #ccd0d4;
+  background: #f6f7f7;
+  padding: .4rem .8rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.sg-tab.active {
+  background: #fff;
+  border-bottom: 2px solid #2271b1;
+}
+
+/* panels */
+.sg-tab-panel { display: none; }
+.sg-tab-panel.active { display: block; }
+
+.sg-panel { display: flex; gap: 1rem; }
+.sg-panel-left { width: 35%; background: #fff; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+.sg-panel-right { flex: 1; background: #fff; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+.sg-page-list { list-style: none; margin: 1rem 0 0; padding: 0; max-height: 360px; overflow-y: auto; }
+.sg-page-list li { margin-bottom: .4rem; }
+
+.sg-preview-box { border: 1px dashed #bbb; min-height: 300px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+.sg-preview-img { max-width: 100%; height: auto; }
+
+.sg-profile { display: flex; align-items: center; gap: .75rem; margin-bottom: 1rem; }
+.sg-profile-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+.sg-profile-meta { line-height: 1.1; }
+.sg-profile-actions a { font-size: .8rem; }
+
+/* settings */
+.sg-settings-left { width: 40%; background: #fff; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; }
+.sg-settings-right { flex: 1; background: #fff; padding: 1rem; border: 1px solid #ddd; border-radius: 8px; margin-left: 1rem; }
+.sg-coming-soon { background: #fef5e7; border: 1px solid #f6c26b; padding: 1rem; border-radius: 6px; }
+.sg-small { color: #666; font-size: .85rem; }
