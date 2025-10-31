@@ -10,6 +10,7 @@ $user = ScripGrab\Auth::current_user();
   <nav class="sg-tabs" data-sg-tabs>
     <button class="sg-tab active" data-tab="capture">Backup / Capture</button>
     <button class="sg-tab" data-tab="settings">Settings</button>
+    <button class="sg-tab" data-tab="remote">Remote Control</button>
   </nav>
 
   <div class="sg-tab-panels">
@@ -18,6 +19,9 @@ $user = ScripGrab\Auth::current_user();
     </div>
     <div class="sg-tab-panel" data-tab-panel="settings">
       <?php include SG_PATH . 'templates/partials/settings-tab.php'; ?>
+    </div>
+    <div class="sg-tab-panel" data-tab-panel="remote">
+      <?php include SG_PATH . 'templates/partials/remote-tab.php'; ?>
     </div>
   </div>
 </div>

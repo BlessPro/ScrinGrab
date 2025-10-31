@@ -1,45 +1,145 @@
-<?php if (!defined('ABSPATH')) exit; ?>
-<div class="sg-panel">
-  <div class="sg-settings-left">
-    <h2>Backup Settings</h2>
-    <p class="sg-small">Configure how many copies to keep and how often to capture.</p>
+<?php
+if (!defined('ABSPATH')) exit;
 
-    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+$settings = get_option('sg_settings', [
+  'retention' => 3,
+  'frequency' => 'weekly',
+  'storage'   => 'local',
+]);
+
+if (!is_array($settings)) {
+  $settings = [];
+}
+$settings = wp_parse_args($settings, [
+  'retention' => 3,
+  'frequency' => 'weekly',
+  'storage'   => 'local',
+]);
+
+$schedule_pages = get_option('sg_schedule_pages', []);
+if (!is_array($schedule_pages)) {
+  $schedule_pages = [];
+}
+
+$all_pages = get_pages([
+  'sort_order'  => 'ASC',
+  'sort_column' => 'post_title',
+  'post_status' => ['publish'],
+]);
+?>
+
+<div class="sg-panel" data-sg-context="settings">
+  <div class="sg-panel-left">
+    <div class="sg-panel-header">
+      <h2>Backup Settings</h2>
+      <p class="sg-small">Control how often ScripGrab runs and how many copies to keep.</p>
+    </div>
+
+    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="sg-settings-form">
       <?php wp_nonce_field('sg_save_settings'); ?>
       <input type="hidden" name="action" value="sg_save_settings">
 
-      <p><strong>Retention</strong></p>
-      <select name="retention">
-        <option value="1">Keep 1 copy</option>
-        <option value="2">Keep 2 copies</option>
-        <option value="3" selected>Keep 3 copies</option>
-        <option value="4">Keep 4 copies</option>
-      </select>
+      <label class="sg-field">
+        <span class="sg-field-label">Retention</span>
+        <select name="retention">
+          <?php for ($i = 1; $i <= 4; $i++): ?>
+            <option value="<?php echo esc_attr($i); ?>" <?php selected((int) $settings['retention'] === $i); ?>>Keep <?php echo esc_html($i); ?> <?php echo $i === 1 ? 'copy' : 'copies'; ?></option>
+          <?php endfor; ?>
+        </select>
+      </label>
 
-      <p style="margin-top:1rem;"><strong>Frequency</strong></p>
-      <select name="frequency">
-        <option value="manual">Manual</option>
-        <option value="daily">Daily</option>
-        <option value="weekly" selected>Weekly</option>
-        <option value="monthly">Monthly</option>
-      </select>
+      <label class="sg-field">
+        <span class="sg-field-label">Frequency</span>
+        <select name="frequency">
+          <?php
+          $frequencies = [
+            'manual'  => 'Manual',
+            'daily'   => 'Daily',
+            'weekly'  => 'Weekly',
+            'monthly' => 'Monthly',
+          ];
+          foreach ($frequencies as $value => $label): ?>
+            <option value="<?php echo esc_attr($value); ?>" <?php selected($settings['frequency'], $value); ?>>
+              <?php echo esc_html($label); ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+      </label>
 
-      <p style="margin-top:1rem;"><strong>Storage</strong></p>
-      <select name="storage">
-        <option value="local">Local (this WP)</option>
-        <option value="drive" disabled>Google Drive (coming soon)</option>
-      </select>
+      <label class="sg-field">
+        <span class="sg-field-label">Storage</span>
+        <select name="storage">
+          <option value="local" <?php selected($settings['storage'], 'local'); ?>>Local (this site)</option>
+          <option value="drive" disabled <?php selected($settings['storage'], 'drive'); ?>>Google Drive (coming soon)</option>
+        </select>
+      </label>
 
-      <p style="margin-top:1.5rem;">
-        <button class="button button-primary">Save Settings</button>
-      </p>
+      <div class="sg-field">
+        <button type="submit" class="button button-primary">Save Settings</button>
+      </div>
     </form>
   </div>
 
-  <div class="sg-settings-right">
-    <div class="sg-coming-soon">
-      <h3>Remote Control (Web App)</h3>
-      <p>COMING SOON — you'll be able to see all your WordPress sites linked to this account here.</p>
-    </div>
+  <div class="sg-panel-right">
+    <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="sg-schedule-form">
+      <?php wp_nonce_field('sg_save_schedule'); ?>
+      <input type="hidden" name="action" value="sg_save_schedule">
+
+      <div class="sg-panel-header">
+        <h2>Scheduled Pages</h2>
+        <p class="sg-small">Pick the desktop pages to include whenever ScripGrab runs automatically.</p>
+      </div>
+
+      <div class="sg-page-actions">
+        <label class="sg-select-all">
+          <input type="checkbox" data-sg-select-all="settings">
+          Select all pages
+        </label>
+      </div>
+
+      <ul class="sg-page-list" data-sg-page-list>
+        <?php foreach ($all_pages as $page):
+          $raw_url = get_permalink($page->ID);
+          $normalized_url = esc_url_raw($raw_url);
+        ?>
+          <li>
+            <label>
+              <input
+                type="checkbox"
+                name="pages[]"
+                value="<?php echo esc_url($raw_url); ?>"
+                class="sg-page-checkbox"
+                data-title="<?php echo esc_attr($page->post_title); ?>"
+                data-url="<?php echo esc_attr($normalized_url); ?>"
+                <?php checked(in_array($normalized_url, $schedule_pages, true)); ?>
+              >
+              <?php echo esc_html($page->post_title); ?>
+            </label>
+          </li>
+        <?php endforeach; ?>
+      </ul>
+
+      <div class="sg-preview-header">
+        <h2>Preview</h2>
+        <p class="sg-small">Desktop captures preview here as soon as you select a page.</p>
+      </div>
+
+      <div
+        class="sg-preview-box"
+        data-sg-preview
+        data-sg-preview-context="settings"
+        data-sg-preview-device="desktop"
+      >
+        <div class="sg-preview-placeholder" data-sg-preview-placeholder>
+          <strong>No page selected</strong>
+          <p class="sg-small">Choose a page to preview the desktop capture.</p>
+        </div>
+        <img src="" alt="" class="sg-preview-img" data-sg-preview-img>
+      </div>
+
+      <div class="sg-panel-actions">
+        <button type="submit" class="button button-primary">Save Selection</button>
+      </div>
+    </form>
   </div>
 </div>
