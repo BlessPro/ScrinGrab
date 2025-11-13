@@ -14,6 +14,9 @@ class Auth
         // OAuth callback endpoints (works for logged-in or not)
         \add_action('admin_post_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
         \add_action('admin_post_nopriv_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
+        // Mock login via POST
+        \add_action('admin_post_sg_mock_login', [__CLASS__, 'mock_login']);
+        \add_action('admin_post_nopriv_sg_mock_login', [__CLASS__, 'mock_login']);
     }
 
     public static function is_logged_in(): bool
@@ -47,14 +50,14 @@ class Auth
             exit;
         }
 
-        // start Google OAuth
+        // start Google OAuth (kept for future)
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'oauth_start') {
             \check_admin_referer('sg_oauth_start');
             self::oauth_start();
             exit;
         }
 
-        // fake login (this is what we'll replace with real Google OAuth later)
+        // Legacy fake login via GET
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'mock_login') {
             $fake = [
                 'name'    => 'ScrinGrab User',
@@ -66,8 +69,7 @@ class Auth
             exit;
         }
 
-        // later:
-        // if sg_action === 'oauth_callback' -> verify Google token -> save -> redirect
+        // later: if sg_action === 'oauth_callback' -> verify Google token -> save -> redirect
     }
 
     protected static function oauth_start(): void
@@ -211,6 +213,19 @@ class Auth
         \wp_safe_redirect($url);
         exit;
     }
+
+    public static function mock_login(): void
+    {
+        if (isset($_POST['_wpnonce'])) {
+            \check_admin_referer('sg_mock_login');
+        }
+        $fake = [
+            'name'    => 'ScrinGrab User',
+            'email'   => 'user@example.com',
+            'picture' => 'https://www.gravatar.com/avatar/' . md5('user@example.com') . '?s=80&d=identicon',
+        ];
+        \update_option(self::OPTION_KEY, $fake);
+        \wp_safe_redirect(\admin_url('admin.php?page=scripgrab'));
+        exit;
+    }
 }
-
-

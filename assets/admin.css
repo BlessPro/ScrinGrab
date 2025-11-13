@@ -1,7 +1,10 @@
 /* overlay */
 .sg-overlay {
   position: fixed;
-  inset: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 160px; /* keep WP admin menu clickable */
   background: rgba(13,17,23,0.85);
   display: flex;
   align-items: center;
@@ -232,3 +235,8 @@
     max-width: 100%;
   }
 }
+
+body.folded .sg-overlay {
+  left: 36px;
+}
+
