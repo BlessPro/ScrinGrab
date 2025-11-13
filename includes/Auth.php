@@ -10,24 +10,24 @@ class Auth
     public static function boot()
     {
         // listen for login/logout actions coming from admin page
-        \add_action('admin_init', [__CLASS__, 'maybe_handle_auth_actions']);
+        add_action('admin_init', [__CLASS__, 'maybe_handle_auth_actions']);
         // OAuth callback endpoints (works for logged-in or not)
-        \add_action('admin_post_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
-        \add_action('admin_post_nopriv_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
+        add_action('admin_post_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
+        add_action('admin_post_nopriv_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
         // Mock login via POST
-        \add_action('admin_post_sg_mock_login', [__CLASS__, 'mock_login']);
-        \add_action('admin_post_nopriv_sg_mock_login', [__CLASS__, 'mock_login']);
+        add_action('admin_post_sg_mock_login', [__CLASS__, 'mock_login']);
+        add_action('admin_post_nopriv_sg_mock_login', [__CLASS__, 'mock_login']);
     }
 
     public static function is_logged_in(): bool
     {
-        $user = \get_option(self::OPTION_KEY);
+        $user = get_option(self::OPTION_KEY);
         return is_array($user) && !empty($user['email']);
     }
 
     public static function current_user(): ?array
     {
-        $user = \get_option(self::OPTION_KEY);
+        $user = get_option(self::OPTION_KEY);
         return is_array($user) ? $user : null;
     }
 
@@ -38,21 +38,21 @@ class Auth
 
         // logout
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'logout') {
-            \delete_option(self::OPTION_KEY);
-            \wp_redirect(\admin_url('admin.php?page=scripgrab'));
+            delete_option(self::OPTION_KEY);
+            wp_redirect(admin_url('admin.php?page=scripgrab'));
             exit;
         }
 
         // switch account = same as logout for now
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'switch') {
-            \delete_option(self::OPTION_KEY);
-            \wp_redirect(\admin_url('admin.php?page=scripgrab'));
+            delete_option(self::OPTION_KEY);
+            wp_redirect(admin_url('admin.php?page=scripgrab'));
             exit;
         }
 
         // start Google OAuth (kept for future)
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'oauth_start') {
-            \check_admin_referer('sg_oauth_start');
+            check_admin_referer('sg_oauth_start');
             self::oauth_start();
             exit;
         }
@@ -64,8 +64,8 @@ class Auth
                 'email'   => 'user@example.com',
                 'picture' => 'https://www.gravatar.com/avatar/' . md5('user@example.com') . '?s=80&d=identicon',
             ];
-            \update_option(self::OPTION_KEY, $fake);
-            \wp_redirect(\admin_url('admin.php?page=scripgrab'));
+            update_option(self::OPTION_KEY, $fake);
+            wp_redirect(admin_url('admin.php?page=scripgrab'));
             exit;
         }
 
@@ -77,14 +77,14 @@ class Auth
         $client_id = defined('SG_GOOGLE_CLIENT_ID') ? constant('SG_GOOGLE_CLIENT_ID') : '';
         $client_secret = defined('SG_GOOGLE_CLIENT_SECRET') ? constant('SG_GOOGLE_CLIENT_SECRET') : '';
         if (!$client_id || !$client_secret) {
-            \wp_safe_redirect(\add_query_arg([
+            wp_safe_redirect(add_query_arg([
                 'page' => 'scripgrab',
                 'sg_notice' => 'oauth_missing_config',
-            ], \admin_url('admin.php')));
+            ], admin_url('admin.php')));
             exit;
         }
 
-        $redirect_uri = \admin_url('admin-post.php?action=sg_oauth_callback');
+        $redirect_uri = admin_url('admin-post.php?action=sg_oauth_callback');
         $state = function_exists('wp_generate_uuid4') ? wp_generate_uuid4() : bin2hex(substr(md5(uniqid('', true)), 0, 16));
         $nonce = function_exists('random_bytes') ? bin2hex(random_bytes(12)) : wp_generate_password(24, false, false);
         set_transient('sg_oauth_state_' . $state, [
@@ -105,7 +105,7 @@ class Auth
         ];
 
         $url = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query($params, '', '&', PHP_QUERY_RFC3986);
-        \wp_redirect($url);
+        wp_redirect($url);
         exit;
     }
 
@@ -130,9 +130,9 @@ class Auth
 
         $client_id = defined('SG_GOOGLE_CLIENT_ID') ? constant('SG_GOOGLE_CLIENT_ID') : '';
         $client_secret = defined('SG_GOOGLE_CLIENT_SECRET') ? constant('SG_GOOGLE_CLIENT_SECRET') : '';
-        $redirect_uri = \admin_url('admin-post.php?action=sg_oauth_callback');
+        $redirect_uri = admin_url('admin-post.php?action=sg_oauth_callback');
 
-        $resp = \wp_remote_post('https://oauth2.googleapis.com/token', [
+        $resp = wp_remote_post('https://oauth2.googleapis.com/token', [
             'timeout' => 20,
             'body'    => [
                 'code'          => $code,
@@ -142,11 +142,11 @@ class Auth
                 'grant_type'    => 'authorization_code',
             ],
         ]);
-        if (\is_wp_error($resp)) {
+        if (is_wp_error($resp)) {
             self::end_with_notice('oauth_http_error');
         }
 
-        $data = json_decode((string) \wp_remote_retrieve_body($resp), true);
+        $data = json_decode((string) wp_remote_retrieve_body($resp), true);
         if (!is_array($data) || empty($data['id_token'])) {
             self::end_with_notice('oauth_no_id_token');
         }
@@ -182,13 +182,13 @@ class Auth
             self::end_with_notice('oauth_no_email');
         }
 
-        \update_option(self::OPTION_KEY, [
+        update_option(self::OPTION_KEY, [
             'name'    => $name,
             'email'   => $email,
             'picture' => $picture,
         ]);
 
-        \wp_safe_redirect(\admin_url('admin.php?page=scripgrab'));
+        wp_safe_redirect(admin_url('admin.php?page=scripgrab'));
         exit;
     }
 
@@ -206,26 +206,28 @@ class Auth
 
     protected static function end_with_notice(string $key): void
     {
-        $url = \add_query_arg([
+        $url = add_query_arg([
             'page'      => 'scripgrab',
             'sg_notice' => $key,
-        ], \admin_url('admin.php'));
-        \wp_safe_redirect($url);
+        ], admin_url('admin.php'));
+        wp_safe_redirect($url);
         exit;
     }
 
     public static function mock_login(): void
     {
         if (isset($_POST['_wpnonce'])) {
-            \check_admin_referer('sg_mock_login');
+            check_admin_referer('sg_mock_login');
         }
         $fake = [
             'name'    => 'ScrinGrab User',
             'email'   => 'user@example.com',
             'picture' => 'https://www.gravatar.com/avatar/' . md5('user@example.com') . '?s=80&d=identicon',
         ];
-        \update_option(self::OPTION_KEY, $fake);
-        \wp_safe_redirect(\admin_url('admin.php?page=scripgrab'));
+        update_option(self::OPTION_KEY, $fake);
+        wp_safe_redirect(admin_url('admin.php?page=scripgrab'));
         exit;
     }
 }
+
+
