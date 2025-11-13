@@ -105,6 +105,12 @@ class Admin
         $screenshot_key = isset($_POST['screenshot_key']) ? sanitize_text_field(wp_unslash($_POST['screenshot_key'])) : '';
         \update_option('sg_screenshot_key', $screenshot_key);
 
+        // Save Google OAuth credentials
+        $google_client_id = isset($_POST['google_client_id']) ? sanitize_text_field(wp_unslash($_POST['google_client_id'])) : '';
+        $google_client_secret = isset($_POST['google_client_secret']) ? sanitize_text_field(wp_unslash($_POST['google_client_secret'])) : '';
+        \update_option('sg_google_client_id', $google_client_id);
+        \update_option('sg_google_client_secret', $google_client_secret);
+
         $redirect = \add_query_arg([
             'page'      => 'scripgrab',
             'sg_tab'    => 'settings',

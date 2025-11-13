@@ -25,9 +25,7 @@ class Rest
         \register_rest_route('scripgrab/v1', '/preview', [
             'methods'  => 'GET',
             'callback' => [__CLASS__, 'preview'],
-            'permission_callback' => function () {
-                return \current_user_can('manage_options');
-            },
+            'permission_callback' => function () { return current_user_can('manage_options') && Auth::is_logged_in(); },
             'args' => [
                 'url' => [
                     'required' => true,
@@ -46,9 +44,7 @@ class Rest
         \register_rest_route('scripgrab/v1', '/capture', [
             'methods'  => 'POST',
             'callback' => [__CLASS__, 'capture'],
-            'permission_callback' => function () {
-                return \current_user_can('manage_options');
-            },
+            'permission_callback' => function () { return current_user_can('manage_options') && Auth::is_logged_in(); },
             'args' => [
                 'urls' => [
                     'required' => true,
@@ -199,4 +195,11 @@ class Rest
         return ['ok' => true, 'saved' => $saved, 'results' => $results];
     }
 }
+
+
+
+
+
+
+
 
