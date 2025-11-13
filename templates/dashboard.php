@@ -5,7 +5,7 @@ $user = ScripGrab\Auth::current_user();
 <div class="sg-wrap">
   <?php include SG_PATH . 'templates/partials/profile-card.php'; ?>
 
-  <h1 class="sg-heading">ScripGrab</h1>
+  <h1 class="sg-heading">ScrinGrab</h1>
 
   <nav class="sg-tabs" data-sg-tabs>
     <button class="sg-tab active" data-tab="capture">Backup / Capture</button>

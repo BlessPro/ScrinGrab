@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: ScripGrab
+ * Plugin Name: ScrinGrab
  * Plugin URI: https://github.com/BlessPro/wp-screenshot
  * Description: Capture/backup screenshots of selected pages and manage them from one place.
  * Version: 0.1.0

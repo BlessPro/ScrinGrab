@@ -18,8 +18,8 @@ class Admin
     public static function menu()
     {
         \add_menu_page(
-            'ScripGrab',
-            'ScripGrab',
+            'ScrinGrab',
+            'ScrinGrab',
             'manage_options',
             'scripgrab',
             [__CLASS__, 'page'],
@@ -182,7 +182,7 @@ class Admin
             exit;
         }
 
-        $tmp = \wp_tempnam('scripgrab-export');
+        $tmp = \wp_tempnam('scringrab-export');
         if (!$tmp) {
             \wp_die(\__('Unable to create a temporary file for the export.', 'scripgrab'));
         }
@@ -202,7 +202,7 @@ class Admin
         }
 
         \nocache_headers();
-        $filename = 'scripgrab-captures-' . gmdate('Ymd-His') . '.zip';
+        $filename = 'scringrab-captures-' . gmdate('Ymd-His') . '.zip';
         header('Content-Type: application/zip');
         header('Content-Disposition: attachment; filename="' . $filename . '"');
         header('Content-Length: ' . filesize($tmp));

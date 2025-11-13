@@ -1,8 +1,8 @@
 <?php if (!defined('ABSPATH')) exit; ?>
 <div class="sg-overlay">
   <div class="sg-overlay-card">
-    <h1 class="sg-title">Welcome to ScripGrab</h1>
-    <p class="sg-subtitle">Sign in to start capturing and backing up your pages.</p>
+    <h1 class="sg-title">Welcome to ScrinGrab</h1>
+    <p class="sg-subtitle">Sign in to start capturing and backing up your pages with ScrinGrab.</p>
 
     <!-- For now we mock Google login -->
     <a class="button button-primary sg-login-btn"

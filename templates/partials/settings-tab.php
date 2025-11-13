@@ -32,7 +32,7 @@ $all_pages = get_pages([
   <div class="sg-panel-left">
     <div class="sg-panel-header">
       <h2>Backup Settings</h2>
-      <p class="sg-small">Control how often ScripGrab runs and how many copies to keep.</p>
+      <p class="sg-small">Control how often ScrinGrab runs and how many copies to keep.</p>
     </div>
 
     <form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>" class="sg-settings-form">
@@ -87,7 +87,7 @@ $all_pages = get_pages([
 
       <div class="sg-panel-header">
         <h2>Scheduled Pages</h2>
-        <p class="sg-small">Pick the desktop pages to include whenever ScripGrab runs automatically.</p>
+        <p class="sg-small">Pick the desktop pages to include whenever ScrinGrab runs automatically.</p>
       </div>
 
       <div class="sg-page-actions">

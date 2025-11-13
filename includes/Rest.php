@@ -17,7 +17,7 @@ class Rest
         \register_rest_route('scripgrab/v1', '/ping', [
             'methods'  => 'GET',
             'callback' => function () {
-                return ['ok' => true, 'plugin' => 'ScripGrab'];
+                return ['ok' => true, 'plugin' => 'ScrinGrab'];
             },
             'permission_callback' => '__return_true',
         ]);
@@ -50,14 +50,21 @@ class Rest
             return new \WP_Error('invalid_url', __('A valid page URL is required.', 'scripgrab'), ['status' => 400]);
         }
 
+        // Restrict previews to this site to avoid abuse/SSRF via third-party hosts.
+        $target_host = wp_parse_url($url, PHP_URL_HOST);
+        $site_host = wp_parse_url(\home_url('/'), PHP_URL_HOST);
+        if (!$target_host || !$site_host || !hash_equals(strtolower($site_host), strtolower($target_host))) {
+            return new \WP_Error('forbidden_host', __('Previews are limited to this site only.', 'scripgrab'), ['status' => 403]);
+        }
+
         $device = sanitize_key($request->get_param('device') ?: 'desktop');
         $device = in_array($device, ['desktop', 'tablet', 'mobile'], true) ? $device : 'desktop';
 
         return [
             'ok'        => true,
             'device'    => $device,
-            'image'     => self::placeholder_image($url, $device),
-            'placeholder' => true,
+            'image'     => self::mshots_url($url, $device),
+            'placeholder' => false,
         ];
     }
 
@@ -103,5 +110,18 @@ class Rest
         );
 
         return 'data:image/svg+xml;charset=UTF-8,' . rawurlencode($svg);
+    }
+
+    protected static function mshots_url(string $url, string $device): string
+    {
+        $widths = [
+            'desktop' => 1280,
+            'tablet'  => 900,
+            'mobile'  => 480,
+        ];
+        $w = $widths[$device] ?? $widths['desktop'];
+        // WordPress.com mShots service. See https://developer.wordpress.com/docs/mshots/
+        // Note: External service caches screenshots; freshness is not guaranteed.
+        return 'https://s.wordpress.com/mshots/v1/' . rawurlencode($url) . '?w=' . (int) $w;
     }
 }

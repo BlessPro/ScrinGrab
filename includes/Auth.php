@@ -47,7 +47,7 @@ class Auth
         // fake login (this is what we'll replace with real Google OAuth later)
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'mock_login') {
             $fake = [
-                'name'    => 'ScripGrab User',
+                'name'    => 'ScrinGrab User',
                 'email'   => 'user@example.com',
                 'picture' => 'https://www.gravatar.com/avatar/' . md5('user@example.com') . '?s=80&d=identicon',
             ];
