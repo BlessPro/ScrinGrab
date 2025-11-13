@@ -216,6 +216,7 @@
     const selectAll = container.querySelector('[data-sg-select-all]');
     const deviceGroup = container.querySelector('[data-sg-device-group]');
     const captureBtn = container.querySelector('[data-sg-capture-now]');
+    const exportForm = container.querySelector('.sg-export-form');
 
     const memory = {
       desktop: new Set(captureSeed.desktop),
@@ -293,7 +294,19 @@
         if (!allowedDevices.includes(selected)) return;
         activeDevice = selected;
         syncFromMemory();
+
+    if (exportForm) {
+      exportForm.addEventListener('submit', () => {
+        Array.from(exportForm.querySelectorAll('input[type="hidden"][data-sg-dynamic]')).forEach((el) => el.remove());
+        const set = memory[activeDevice] || new Set();
+        const urls = Array.from(set);
+        const dev = document.createElement('input');
+        dev.type = 'hidden'; dev.name = 'device'; dev.value = String(activeDevice || 'desktop');
+        dev.setAttribute('data-sg-dynamic',''); exportForm.appendChild(dev);
+        urls.forEach((u) => { const inp = document.createElement('input'); inp.type='hidden'; inp.name='urls[]'; inp.value=String(u); inp.setAttribute('data-sg-dynamic',''); exportForm.appendChild(inp); });
       });
+    }
+});
     }
 
     pageList.addEventListener('change', (event) => {
@@ -329,7 +342,18 @@
 
     syncFromMemory();
 
-    if (captureBtn) {
+    if (exportForm) {
+      exportForm.addEventListener('submit', () => {
+        Array.from(exportForm.querySelectorAll('input[type="hidden"][data-sg-dynamic]')).forEach((el) => el.remove());
+        const set = memory[activeDevice] || new Set();
+        const urls = Array.from(set);
+        const dev = document.createElement('input');
+        dev.type = 'hidden'; dev.name = 'device'; dev.value = String(activeDevice || 'desktop');
+        dev.setAttribute('data-sg-dynamic',''); exportForm.appendChild(dev);
+        urls.forEach((u) => { const inp = document.createElement('input'); inp.type='hidden'; inp.name='urls[]'; inp.value=String(u); inp.setAttribute('data-sg-dynamic',''); exportForm.appendChild(inp); });
+      });
+    }
+if (captureBtn) {
       captureBtn.addEventListener('click', () => {
         const set = memory[activeDevice] || new Set();
         const urls = Array.from(set);
@@ -442,6 +466,7 @@
     loadFirstChecked();
   }
 })(window, document);
+
 
 
 
