@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) exit;
 define('SG_FILE', __FILE__);
 define('SG_PATH', plugin_dir_path(__FILE__));
 define('SG_URL', plugin_dir_url(__FILE__));
-define('SG_VER', '0.1.0');
+define('SG_VER', '0.1.1');
 
 require_once SG_PATH . 'includes/Installer.php';
 require_once SG_PATH . 'includes/Auth.php';
@@ -37,3 +37,4 @@ add_action('plugins_loaded', function () {
     ScripGrab\Jobs::boot();
     ScripGrab\Rest::boot();
 });
+

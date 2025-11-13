@@ -101,6 +101,10 @@ class Admin
             'storage'   => $storage,
         ]);
 
+        // Save ScreenshotMachine API key
+        $screenshot_key = isset($_POST['screenshot_key']) ? sanitize_text_field(wp_unslash($_POST['screenshot_key'])) : '';
+        \update_option('sg_screenshot_key', $screenshot_key);
+
         $redirect = \add_query_arg([
             'page'      => 'scripgrab',
             'sg_tab'    => 'settings',
@@ -275,3 +279,5 @@ class Admin
         return 'capture-' . $stamp . '-' . $id . '-' . $clean;
     }
 }
+
+

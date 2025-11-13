@@ -41,6 +41,30 @@ class Rest
                 ],
             ],
         ]);
+
+        // Save captures for selected pages
+        \register_rest_route('scripgrab/v1', '/capture', [
+            'methods'  => 'POST',
+            'callback' => [__CLASS__, 'capture'],
+            'permission_callback' => function () {
+                return \current_user_can('manage_options');
+            },
+            'args' => [
+                'urls' => [
+                    'required' => true,
+                    'type'     => 'array',
+                    'description' => 'Array of absolute URLs to capture.',
+                ],
+                'device' => [
+                    'required' => false,
+                    'type'     => 'string',
+                ],
+                'force' => [
+                    'required' => false,
+                    'type'     => 'boolean',
+                ],
+            ],
+        ]);
     }
 
     public static function preview(\WP_REST_Request $request)
@@ -124,4 +148,55 @@ class Rest
         // Note: External service caches screenshots; freshness is not guaranteed.
         return 'https://s.wordpress.com/mshots/v1/' . rawurlencode($url) . '?w=' . (int) $w;
     }
+
+    public static function capture(\WP_REST_Request $request)
+    {
+        $urls = (array) $request->get_param('urls');
+        $urls = array_values(array_filter(array_map('esc_url_raw', $urls)));
+        if (empty($urls)) {
+            return new \WP_Error('invalid_urls', __('Provide one or more page URLs.', 'scripgrab'), ['status' => 400]);
+        }
+
+        $site_host = wp_parse_url(\home_url('/'), PHP_URL_HOST);
+        $device = sanitize_key($request->get_param('device') ?: 'desktop');
+        $device = in_array($device, ['desktop','tablet','mobile'], true) ? $device : 'desktop';
+        $force = (bool) $request->get_param('force');
+
+        $results = [];
+        $saved = 0;
+
+        foreach ($urls as $url) {
+            $host = wp_parse_url($url, PHP_URL_HOST);
+            // Normalize hosts: treat www.example.com and example.com as the same
+            $normalize = function($h) {
+                $h = strtolower((string) $h);
+                if (strpos($h, 'www.') === 0) $h = substr($h, 4);
+                return $h;
+            };
+            $h1 = $normalize($host);
+            $h2 = $normalize($site_host);
+            if (!$h1 || !$h2 || $h1 !== $h2) {
+                $results[] = ['url' => $url, 'ok' => false, 'message' => 'forbidden_host'];
+                continue;
+            }
+
+            $shot = \ScripGrab\Renderer::capture($url, $device, true, ['format' => 'jpg', 'force' => $force]);
+            if (empty($shot['ok'])) {
+                $results[] = ['url' => $url, 'ok' => false, 'message' => $shot['error'] ?? 'capture_failed'];
+                continue;
+            }
+
+            $save = \ScripGrab\Storage::save_capture($url, $device, $shot['binary'], $shot['mime'] ?? 'image/jpeg', true);
+            if (empty($save['ok'])) {
+                $results[] = ['url' => $url, 'ok' => false, 'message' => $save['error'] ?? 'save_failed'];
+                continue;
+            }
+
+            $saved++;
+            $results[] = ['url' => $url, 'ok' => true, 'attachment_id' => $save['attachment_id'], 'target_id' => $save['target_id']];
+        }
+
+        return ['ok' => true, 'saved' => $saved, 'results' => $results];
+    }
 }
+

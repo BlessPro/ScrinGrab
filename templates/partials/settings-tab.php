@@ -16,6 +16,8 @@ $settings = wp_parse_args($settings, [
   'storage'   => 'local',
 ]);
 
+$screenshot_key = get_option('sg_screenshot_key', '');
+
 $schedule_pages = get_option('sg_schedule_pages', []);
 if (!is_array($schedule_pages)) {
   $schedule_pages = [];
@@ -72,6 +74,12 @@ $all_pages = get_pages([
           <option value="local" <?php selected($settings['storage'], 'local'); ?>>Local (this site)</option>
           <option value="drive" disabled <?php selected($settings['storage'], 'drive'); ?>>Google Drive (coming soon)</option>
         </select>
+      </label>
+
+      <label class="sg-field">
+        <span class="sg-field-label">ScreenshotMachine API Key</span>
+        <input type="text" name="screenshot_key" value="<?php echo esc_attr($screenshot_key); ?>" placeholder="Enter API key">
+        <p class="sg-small">Used for saving screenshots to Media and exports. Previews use a free provider.</p>
       </label>
 
       <div class="sg-field">

@@ -92,4 +92,35 @@ class Targets
         $deleted = $wpdb->delete($table, ['id' => $id]);
         return (bool) $deleted;
     }
+
+    /**
+     * Find by URL + device.
+     */
+    public static function find_by(string $url, string $device): ?array
+    {
+        global $wpdb;
+        $table = self::table();
+        $device = sanitize_key($device);
+        $url = esc_url_raw($url);
+        $row = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$table} WHERE absolute_url = %s AND device = %s LIMIT 1", $url, $device), ARRAY_A);
+        return $row ?: null;
+    }
+
+    /**
+     * Get target id or create a new one.
+     */
+    public static function get_or_create(string $url, string $device, bool $full = true): int
+    {
+        $existing = self::find_by($url, $device);
+        if ($existing && isset($existing['id'])) {
+            return (int) $existing['id'];
+        }
+        return self::create([
+            'absolute_url' => esc_url_raw($url),
+            'device'       => sanitize_key($device),
+            'full_page'    => $full ? 1 : 0,
+            'enabled'      => 1,
+            'retention'    => 3,
+        ]);
+    }
 }

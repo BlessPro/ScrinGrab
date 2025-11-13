@@ -215,6 +215,7 @@
     const preview = createPreviewController(previewBox);
     const selectAll = container.querySelector('[data-sg-select-all]');
     const deviceGroup = container.querySelector('[data-sg-device-group]');
+    const captureBtn = container.querySelector('[data-sg-capture-now]');
 
     const memory = {
       desktop: new Set(captureSeed.desktop),
@@ -284,7 +285,7 @@
       }
     };
 
-    if (deviceGroup) {
+        if (deviceGroup) {
       deviceGroup.addEventListener('change', (event) => {
         const radio = event.target.closest('input[type="radio"]');
         if (!radio) return;
@@ -327,6 +328,36 @@
     }
 
     syncFromMemory();
+
+    if (captureBtn) {
+      captureBtn.addEventListener('click', () => {
+        const set = memory[activeDevice] || new Set();
+        const urls = Array.from(set);
+        if (!urls.length) {
+          window.alert('Select at least one page to capture.');
+          return;
+        }
+        const originalText = captureBtn.textContent;
+        captureBtn.disabled = true;
+        captureBtn.textContent = 'Capturing...';
+
+        const payload = { device: activeDevice, urls, force: true };
+        const endpoint = restBase + '/capture';
+        const doFetch = (window.wp && window.wp.apiFetch)
+          ? window.wp.apiFetch({ url: endpoint, method: 'POST', headers: { 'Content-Type': 'application/json', ...restHeaders }, body: JSON.stringify(payload) })
+          : window.fetch(endpoint, { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json', ...restHeaders }, body: JSON.stringify(payload) }).then((r) => { if (!r.ok) throw new Error('Capture failed'); return r.json(); });
+
+        doFetch.then((res) => {
+          const n = (res && typeof res.saved === 'number') ? res.saved : 0;
+          window.alert('Captured ' + n + ' page(s). You can now export.');
+        }).catch(() => {
+          window.alert('Capture failed. Please check the API key in Settings and try again.');
+        }).finally(() => {
+          captureBtn.disabled = false;
+          captureBtn.textContent = originalText;
+        });
+      });
+    }
   }
 
   function setupSettings(container) {
@@ -411,3 +442,6 @@
     loadFirstChecked();
   }
 })(window, document);
+
+
+
