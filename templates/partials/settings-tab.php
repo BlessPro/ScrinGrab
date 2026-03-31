@@ -17,8 +17,6 @@ $settings = wp_parse_args($settings, [
 ]);
 
 $screenshot_key = get_option('sg_screenshot_key', '');
-$google_client_id = get_option('sg_google_client_id', '');
-$google_client_secret = get_option('sg_google_client_secret', '');
 
 $schedule_pages = get_option('sg_schedule_pages', []);
 if (!is_array($schedule_pages)) {
@@ -79,18 +77,9 @@ $all_pages = get_pages([
       </label>
 
       <label class="sg-field">
-        <span class="sg-field-label">ScreenshotMachine API Key</span>
-        <input type="text" name="screenshot_key" value="<?php echo esc_attr($screenshot_key); ?>" placeholder="Enter API key">
-        <p class="sg-small">Used for saving screenshots to Media and exports. Previews use a free provider.</p>
-      </label>
-      <label class="sg-field">
-        <span class="sg-field-label">Google Client ID</span>
-        <input type="text" name="google_client_id" value="<?php echo esc_attr($google_client_id); ?>" placeholder="your-client-id.apps.googleusercontent.com">
-      </label>
-      <label class="sg-field">
-        <span class="sg-field-label">Google Client Secret</span>
-        <input type="text" name="google_client_secret" value="<?php echo esc_attr($google_client_secret); ?>" placeholder="Client secret">
-        <p class="sg-small">Redirect URI: <code><?php echo esc_html( admin_url('admin-post.php?action=sg_oauth_callback') ); ?></code></p>
+        <span class="sg-field-label">ScreenshotMachine API Key (Testing)</span>
+        <input type="text" name="screenshot_key" value="<?php echo esc_attr($screenshot_key); ?>" placeholder="Enter your API key">
+        <p class="sg-small">Build-stage BYOK mode. If empty, ScrinGrab falls back to <code>SG_SCREENSHOT_API_KEY</code> when defined in <code>wp-config.php</code>.</p>
       </label>
 
       <div class="sg-field">

@@ -100,16 +100,11 @@ class Admin
             'frequency' => $frequency,
             'storage'   => $storage,
         ]);
+        \ScripGrab\Jobs::reschedule_from_settings();
 
-        // Save ScreenshotMachine API key
+        // Testing-stage BYOK: allow admins to store their own ScreenshotMachine key.
         $screenshot_key = isset($_POST['screenshot_key']) ? sanitize_text_field(wp_unslash($_POST['screenshot_key'])) : '';
         \update_option('sg_screenshot_key', $screenshot_key);
-
-        // Save Google OAuth credentials
-        $google_client_id = isset($_POST['google_client_id']) ? sanitize_text_field(wp_unslash($_POST['google_client_id'])) : '';
-        $google_client_secret = isset($_POST['google_client_secret']) ? sanitize_text_field(wp_unslash($_POST['google_client_secret'])) : '';
-        \update_option('sg_google_client_id', $google_client_id);
-        \update_option('sg_google_client_secret', $google_client_secret);
 
         $redirect = \add_query_arg([
             'page'      => 'scripgrab',
@@ -166,8 +161,44 @@ class Admin
         }
 
         global $wpdb;
-        $table = $wpdb->prefix . 'sg_captures';
-        $rows = $wpdb->get_results("SELECT id, attachment_id, created_at FROM {$table} ORDER BY created_at DESC", ARRAY_A);
+        $captures = $wpdb->prefix . 'sg_captures';
+        $targets = $wpdb->prefix . 'sg_targets';
+
+        $urls = isset($_POST['urls']) ? (array) $_POST['urls'] : [];
+        $urls = array_values(array_unique(array_filter(array_map(static function ($url) {
+            return esc_url_raw(wp_unslash((string) $url));
+        }, $urls))));
+
+        $device = isset($_POST['device']) ? sanitize_key(wp_unslash($_POST['device'])) : '';
+        if (!in_array($device, ['desktop', 'tablet', 'mobile'], true)) {
+            $device = '';
+        }
+
+        $sql = "SELECT c.id, c.attachment_id, c.created_at
+                FROM {$captures} c
+                LEFT JOIN {$targets} t ON t.id = c.target_id";
+        $where = [];
+        $params = [];
+
+        if (!empty($urls)) {
+            $placeholders = implode(',', array_fill(0, count($urls), '%s'));
+            $where[] = "t.absolute_url IN ({$placeholders})";
+            $params = array_merge($params, $urls);
+        }
+        if ($device) {
+            $where[] = "t.device = %s";
+            $params[] = $device;
+        }
+        if (!empty($where)) {
+            $sql .= ' WHERE ' . implode(' AND ', $where);
+        }
+        $sql .= ' ORDER BY c.created_at DESC';
+
+        if (!empty($params)) {
+            $rows = $wpdb->get_results($wpdb->prepare($sql, $params), ARRAY_A);
+        } else {
+            $rows = $wpdb->get_results($sql, ARRAY_A);
+        }
 
         $files = [];
         foreach ($rows as $row) {

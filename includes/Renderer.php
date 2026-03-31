@@ -10,7 +10,7 @@ class Renderer
      */
     public static function capture(string $url, string $device='desktop', bool $full=true, array $opts = []): array
     {
-        $key = \get_option('sg_screenshot_key');
+        $key = self::api_key();
         if (!$key) {
             return ['ok' => false, 'error' => 'missing_key'];
         }
@@ -51,6 +51,17 @@ class Renderer
             'binary' => $body,
             'mime'   => $mime,
         ];
+    }
+
+    protected static function api_key(): string
+    {
+        if (\defined('SG_SCREENSHOT_API_KEY') && \constant('SG_SCREENSHOT_API_KEY')) {
+            return (string) \constant('SG_SCREENSHOT_API_KEY');
+        }
+
+        // Backward compatibility for existing installs that already saved this option.
+        $legacy = (string) \get_option('sg_screenshot_key', '');
+        return trim($legacy);
     }
 
     protected static function dimension_for(string $device, bool $full): string

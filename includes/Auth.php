@@ -11,9 +11,6 @@ class Auth
     {
         // listen for login/logout actions coming from admin page
         add_action('admin_init', [__CLASS__, 'maybe_handle_auth_actions']);
-        // OAuth callback endpoints (works for logged-in or not)
-        add_action('admin_post_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
-        add_action('admin_post_nopriv_sg_oauth_callback', [__CLASS__, 'oauth_callback']);
         // Mock login via POST
         add_action('admin_post_sg_mock_login', [__CLASS__, 'mock_login']);
         add_action('admin_post_nopriv_sg_mock_login', [__CLASS__, 'mock_login']);
@@ -50,13 +47,6 @@ class Auth
             exit;
         }
 
-        // start Google OAuth (kept for future)
-        if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'oauth_start') {
-            check_admin_referer('sg_oauth_start');
-            self::oauth_start();
-            exit;
-        }
-
         // Legacy fake login via GET
         if (isset($_GET['sg_action']) && $_GET['sg_action'] === 'mock_login') {
             $fake = [
@@ -74,8 +64,8 @@ class Auth
 
     protected static function oauth_start(): void
     {
-        $client_id = defined('SG_GOOGLE_CLIENT_ID') ? constant('SG_GOOGLE_CLIENT_ID') : '';
-        $client_secret = defined('SG_GOOGLE_CLIENT_SECRET') ? constant('SG_GOOGLE_CLIENT_SECRET') : '';
+        $client_id = self::google_client_id();
+        $client_secret = self::google_client_secret();
         if (!$client_id || !$client_secret) {
             wp_safe_redirect(add_query_arg([
                 'page' => 'scripgrab',
@@ -128,8 +118,8 @@ class Auth
         }
         delete_transient('sg_oauth_state_' . $state);
 
-        $client_id = defined('SG_GOOGLE_CLIENT_ID') ? constant('SG_GOOGLE_CLIENT_ID') : '';
-        $client_secret = defined('SG_GOOGLE_CLIENT_SECRET') ? constant('SG_GOOGLE_CLIENT_SECRET') : '';
+        $client_id = self::google_client_id();
+        $client_secret = self::google_client_secret();
         $redirect_uri = admin_url('admin-post.php?action=sg_oauth_callback');
 
         $resp = wp_remote_post('https://oauth2.googleapis.com/token', [
@@ -212,6 +202,30 @@ class Auth
         ], admin_url('admin.php'));
         wp_safe_redirect($url);
         exit;
+    }
+
+    protected static function google_client_id(): string
+    {
+        $from_option = trim((string) get_option('sg_google_client_id', ''));
+        if ($from_option !== '') {
+            return $from_option;
+        }
+        if (defined('SG_GOOGLE_CLIENT_ID')) {
+            return (string) constant('SG_GOOGLE_CLIENT_ID');
+        }
+        return '';
+    }
+
+    protected static function google_client_secret(): string
+    {
+        $from_option = trim((string) get_option('sg_google_client_secret', ''));
+        if ($from_option !== '') {
+            return $from_option;
+        }
+        if (defined('SG_GOOGLE_CLIENT_SECRET')) {
+            return (string) constant('SG_GOOGLE_CLIENT_SECRET');
+        }
+        return '';
     }
 
     public static function mock_login(): void

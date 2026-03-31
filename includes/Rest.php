@@ -79,13 +79,52 @@ class Rest
 
         $device = sanitize_key($request->get_param('device') ?: 'desktop');
         $device = in_array($device, ['desktop', 'tablet', 'mobile'], true) ? $device : 'desktop';
+        $saved_image = self::latest_capture_image($url, $device);
+        if ($saved_image) {
+            return [
+                'ok'          => true,
+                'device'      => $device,
+                'image'       => $saved_image,
+                'placeholder' => false,
+                'source'      => 'saved',
+            ];
+        }
 
         return [
             'ok'        => true,
             'device'    => $device,
             'image'     => self::mshots_url($url, $device),
             'placeholder' => false,
+            'source'    => 'mshots',
         ];
+    }
+
+    protected static function latest_capture_image(string $url, string $device): string
+    {
+        global $wpdb;
+        $targets = $wpdb->prefix . 'sg_targets';
+        $captures = $wpdb->prefix . 'sg_captures';
+
+        $attachment_id = (int) $wpdb->get_var($wpdb->prepare(
+            "SELECT c.attachment_id
+             FROM {$captures} c
+             INNER JOIN {$targets} t ON t.id = c.target_id
+             WHERE t.absolute_url = %s
+               AND t.device = %s
+               AND c.attachment_id IS NOT NULL
+               AND c.status = 'ok'
+             ORDER BY c.created_at DESC, c.id DESC
+             LIMIT 1",
+            esc_url_raw($url),
+            sanitize_key($device)
+        ));
+
+        if ($attachment_id <= 0) {
+            return '';
+        }
+
+        $image_url = wp_get_attachment_url($attachment_id);
+        return is_string($image_url) ? esc_url_raw($image_url) : '';
     }
 
     protected static function placeholder_image(string $url, string $device): string

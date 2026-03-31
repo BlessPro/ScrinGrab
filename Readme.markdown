@@ -3,7 +3,7 @@
 Capture, compare, and back up visual snapshots of your WordPress pages — effortlessly.
 
 Author: Bless Doe (aka BlessPro)
-Version: 0.1.0
+Version: 0.1.2
 Requires WordPress: 6.0+
 Tested up to: 6.7
 Requires PHP: 8.1+

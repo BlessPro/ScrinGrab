@@ -3,7 +3,7 @@
  * Plugin Name: ScrinGrab
  * Plugin URI: https://github.com/BlessPro/wp-screenshot
  * Description: Capture/backup screenshots of selected pages and manage them from one place.
- * Version: 0.1.0
+ * Version: 0.1.2
  * Author: Bless Doe (aka BlessPro)
  * Author URI: https://github.com/BlessPro
  * License: GPLv2 or later
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) exit;
 define('SG_FILE', __FILE__);
 define('SG_PATH', plugin_dir_path(__FILE__));
 define('SG_URL', plugin_dir_url(__FILE__));
-define('SG_VER', '0.1.1');
+define('SG_VER', '0.1.2');
 
 require_once SG_PATH . 'includes/Installer.php';
 require_once SG_PATH . 'includes/Auth.php';

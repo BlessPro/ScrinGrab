@@ -9,6 +9,7 @@
 
   const restBase = resolveRestBase(config.rest);
   const restHeaders = resolveRestHeaders(config.nonce);
+  const previewCache = new Map();
 
   const tabs = Array.from(document.querySelectorAll('[data-sg-tabs] .sg-tab'));
   const panels = Array.from(document.querySelectorAll('.sg-tab-panel'));
@@ -78,6 +79,10 @@
     if (!restBase) {
       return Promise.reject(new Error('REST endpoint unavailable'));
     }
+    const key = String(device || 'desktop') + '|' + String(url || '');
+    if (previewCache.has(key)) {
+      return Promise.resolve(previewCache.get(key));
+    }
 
     const params = new URLSearchParams({ url: String(url || '') });
     if (device) params.append('device', device);
@@ -87,6 +92,11 @@
       return window.wp.apiFetch({
         url: endpoint,
         headers: restHeaders,
+      }).then((payload) => {
+        if (payload && payload.image) {
+          previewCache.set(key, payload);
+        }
+        return payload;
       });
     }
 
@@ -95,7 +105,12 @@
       headers: restHeaders,
     }).then((response) => {
       if (!response.ok) throw new Error('Preview request failed');
-      return response.json();
+      return response.json().then((payload) => {
+        if (payload && payload.image) {
+          previewCache.set(key, payload);
+        }
+        return payload;
+      });
     });
   }
 

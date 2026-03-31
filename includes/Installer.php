@@ -40,14 +40,12 @@ class Installer
         \dbDelta($sql1);
         \dbDelta($sql2);
 
-        if (!\wp_next_scheduled('sg_run_due_jobs')) {
-            \wp_schedule_event(time() + 60, 'hourly', 'sg_run_due_jobs');
-        }
+        \add_filter('cron_schedules', ['ScripGrab\\Jobs', 'cron_schedules']);
+        \ScripGrab\Jobs::reschedule_from_settings();
     }
 
     public static function deactivate()
     {
-        $ts = \wp_next_scheduled('sg_run_due_jobs');
-        if ($ts) \wp_unschedule_event($ts, 'sg_run_due_jobs');
+        \wp_clear_scheduled_hook('sg_run_due_jobs');
     }
 }
